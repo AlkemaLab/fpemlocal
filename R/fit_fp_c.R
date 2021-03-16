@@ -119,6 +119,10 @@ fit_fp_csub <- function(
   nburnin = 500,
   nthin = max(1, floor((niter - nburnin)*nchains / 2000))
 ) {
+  
+  # EMUs are not to be used for unmarried women
+  if (is_in_union == "N") service_stats_filepath <- NULL
+  
   # check inputs to this wrapper
   check_inputs(
     surveydata_filepath = surveydata_filepath,
