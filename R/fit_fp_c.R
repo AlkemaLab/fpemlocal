@@ -188,5 +188,6 @@ fit_fp_csub <- function(
   dimnames(posterior_samples) <- list(division_numeric_code)
     return(list(
       posterior_samples = posterior_samples,
-      core_data = core_data))
+      core_data = core_data,
+      list_service_stats = list_service_stats))
 }

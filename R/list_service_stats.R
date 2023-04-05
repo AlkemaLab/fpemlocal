@@ -17,7 +17,10 @@ list_service_stats <- function(
   se_clients = 0.0331
   se_facilities = 0.0389
   se_users = 0.1199
-  if (!is.null(service_stats_filepath)) {
+  
+  if (is.null(service_stats_filepath)) {
+    list_ss_data <- NULL
+  } else {
       if (is.na(first_year_observed)) {
         stop("No available contraceptive use data for this run. Service statistics cannot be used.")
       }
@@ -28,12 +31,15 @@ list_service_stats <- function(
       #   ss <- fpemservicestat::service_stats
       # }
     format_check(service_stats_format, ss)
-    ss <- ss %>% dplyr::arrange(year)
-    ss <- ss %>%
+    ss_level <- ss %>% dplyr::arrange(year) %>%
       dplyr::filter(division_numeric_code == !! division_numeric_code) %>%
       dplyr::filter(year >= first_year_observed) %>%
-      tidyr::drop_na() %>%
+      tidyr::drop_na()
+    ss <- ss_level %>%
+      # code added to allow for including more than 1 type 
+      group_by(ss_type) %>%
       dplyr::mutate(ss_delta = c(NA,diff(emu))) %>%
+      ungroup() %>%
       dplyr::mutate(ss_year_lag = dplyr::lag(year)) %>%
       dplyr::mutate(ss_se = ifelse(ss_type == "visits", se_visits,
                                     ifelse(ss_type == "clients", se_clients,
@@ -46,10 +52,9 @@ list_service_stats <- function(
     list_ss_data <- list(K = k_index %>% length,
                          get_t_k = match(x = floor(ss$year),model_seq_years), # k+1 years and k differences
                          ss_delta_k = ss$ss_delta[k_index],
-                         ss_se_k = ss$ss_se[k_index]
+                         ss_se_k = ss$ss_se[k_index],
+                         ss_level = ss_level
                          )
-  } else {
-    list_ss_data <- NULL
-  }
-  return(list_ss_data)
+  } 
+  return(list_ss_data = list_ss_data)
 }
